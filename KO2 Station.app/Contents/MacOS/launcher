@@ -1,0 +1,8 @@
+#!/bin/sh
+# Reopen a running station. For a cold start, Terminal hosts the project
+# command so macOS can request Desktop and microphone access for that app.
+if [ "$(curl -fsS -m 1 http://127.0.0.1:8800/api/health 2>/dev/null)" = "KO2 Station" ]; then
+  exec open http://127.0.0.1:8800/
+fi
+project=$(cd "$(dirname "$0")/../../.." && pwd)
+exec open -a Terminal "$project/src/Station.command"

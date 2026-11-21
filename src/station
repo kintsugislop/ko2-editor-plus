@@ -1,0 +1,31 @@
+#!/bin/sh
+# Launch the workstation UI.  ./station                  -> EP-133 K.O. II
+#                             ./station --device EP-40   -> riddim
+cd "$(dirname "$0")" || exit 1
+
+port=8800
+expect_port=false
+for arg in "$@"; do
+  if "$expect_port"; then port=$arg; expect_port=false; continue; fi
+  case "$arg" in --port) expect_port=true ;; --port=*) port=${arg#--port=} ;; esac
+done
+url="http://127.0.0.1:$port"
+python3 epstation.py "$@" &
+PID=$!
+trap 'kill $PID 2>/dev/null; wait $PID 2>/dev/null; echo; echo "station stopped"; exit 0' INT TERM
+# Readiness is independent of the MIDI connection.
+i=0
+while [ "$i" -lt 80 ]; do
+  if ! kill -0 "$PID" 2>/dev/null; then wait "$PID"; exit $?; fi
+  if [ "$(curl -fsS -m 1 "$url/api/health" 2>/dev/null)" = "KO2 Station" ]; then
+    open "$url/"
+    wait "$PID"
+    exit $?
+  fi
+  sleep 0.25
+  i=$((i+1))
+done
+echo "Station did not answer at $url" >&2
+kill "$PID" 2>/dev/null
+wait "$PID" 2>/dev/null
+exit 1

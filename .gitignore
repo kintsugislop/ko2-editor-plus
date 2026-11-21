@@ -1,0 +1,12 @@
+# Local sessions, sample indexes, files recorded from hardware, and old versions
+/data/
+/temp/
+.DS_Store
+__pycache__/
+*.py[cod]
+/.venv/
+*.log
+*.sqlite*
+/src/midibridge
+/src/usbrec
+/src/*.new
